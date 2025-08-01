@@ -9,40 +9,53 @@ userAgentInfo.isAndroid = userAgentInfo.name.indexOf('android') >= 0;
 userAgentInfo.isTablet = (userAgentInfo.isiPad || (userAgentInfo.isAndroid && userAgentInfo.name.indexOf('mobile') < 0));
 userAgentInfo.isTouch = ('ontouchstart' in window);
 
-$(function () {
-    $(window).on('load resize', function () {
-        windowWidth = window.innerWidth ? window.innerWidth : $(window).width();
-        windowHeight = window.innerHeight ? window.innerHeight : $(window).height();
-    });
-    if (userAgentInfo.isTouch) {
-        windowWidth = screen.width;
-        windowHeight = screen.height;
+var windowWidth;
+var windowHeight;
+var breakpointWidth = 768;
+
+function updateLayoutAndMenuPosition() {
+    windowWidth = window.innerWidth;
+    windowHeight = window.innerHeight;
+
+    if (windowWidth < breakpointWidth) {
+        if ($('#siteHeader .mainNavigation').length && $('#siteHeader .mainNavigation').parent().attr('id') !== 'mobileMenuOverlay') {
+            $('#siteHeader .mainNavigation').appendTo('#mobileMenuOverlay');
+        }
     } else {
-        windowWidth = window.innerWidth ? window.innerWidth : $(window).width();
-        windowHeight = window.innerHeight ? window.innerHeight : $(window).height();
+        if ($('#mobileMenuOverlay .mainNavigation').length && $('#mobileMenuOverlay .mainNavigation').parent().attr('class') !== 'mainMenuWrapper') {
+            $('#mobileMenuOverlay .mainNavigation').prependTo('#siteHeader .mainMenuWrapper');
+        }
+        $('#mobileMenuOverlay').removeClass('active');
+        $('.mobileMenuToggle').removeClass('active');
     }
-});
+
+    $('#galleryNavSlider').slick('resize');
+    $('#homeNewsGrid').slick('resize');
+    $('#dreamMainSlider').slick('resize');
+}
 
 var currentPagePath = location.pathname;
 var currentLanguage = currentPagePath.split('/')[1];
 var currentHash = location.hash;
-var breakpointWidth = 768;
+
 
 $(function () {
+
+    setTimeout(updateLayoutAndMenuPosition, 100);
+
+    $(window).on('resize', function () {
+        updateLayoutAndMenuPosition();
+    });
+
     if (userAgentInfo.isiOS) {
         $('#pageContent').addClass('iOS');
     }
 
-    $(window).on('load resize', function () {
-        if (windowWidth < breakpointWidth) {
-            $('#siteHeader .mainNavigation').appendTo('#mobileMenuOverlay');
-        } else {
-            $('#mobileMenuOverlay .mainNavigation').prependTo('#siteHeader .mainMenuWrapper');
-        }
-    });
+
     $('.mobileMenuToggle').on('click', function () {
         $('#mobileMenuOverlay, .mobileMenuToggle').toggleClass('active');
     });
+
     $(document).on('click', '#mobileMenuOverlay .mainNavigation a', function () {
         $('#mobileMenuOverlay, .mobileMenuToggle').removeClass('active');
     });
@@ -76,12 +89,16 @@ $(function () {
     }).on('setPosition', function (event, slick) {
         var count = slick.slideCount;
         if (windowWidth < breakpointWidth) {
-            if (count <= 2) {
+            if (count <= 2 && $(this).hasClass('slick-initialized')) {
                 $(this).slick('unslick');
+            } else if (count > 2 && !$(this).hasClass('slick-initialized')) {
+                $(this).slick('slick');
             }
         } else {
-            if (count <= 3) {
+            if (count <= 3 && $(this).hasClass('slick-initialized')) {
                 $(this).slick('unslick');
+            } else if (count > 3 && !$(this).hasClass('slick-initialized')) {
+                $(this).slick('slick');
             }
         }
     });
@@ -181,7 +198,9 @@ $(function () {
                 $('#siteHeader').removeClass('scroll');
             }
             if (userAgentInfo.isiOS) {
-                var timer = setTimeout(checkCurrentSection(sectionPositions, targetSections), 200);
+                var timer = setTimeout(function () {
+                    checkCurrentSection(sectionPositions, targetSections);
+                }, 200);
             }
         }
     });
@@ -201,7 +220,6 @@ function checkCurrentSection(sectionPositions, targetSections) {
         if (sectionPositions[i][0] <= scroll && sectionPositions[i][1] >= scroll) {
             $('section.contentBlock').removeClass('current');
             $(targetSections[i]).addClass('current');
-            i == sectionPositions.length;
         }
     };
 }
