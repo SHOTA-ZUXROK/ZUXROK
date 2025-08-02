@@ -1310,6 +1310,7 @@ body[data-aos-delay="100"] [data-aos] {
 [data-aos][data-aos][data-aos-delay="100"].aos-animate,
 body[data-aos-delay="100"] [data-aos].aos-animate {
   transition-delay: .1s;
+  margin-top: -30px;
 }
 
 [data-aos][data-aos][data-aos-duration="150"],
